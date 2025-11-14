@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>랜덤 자리 배치 (기록 및 수정 기능)</title>
+
+    <style>
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1300px;
+            gap: 30px;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 860px;
+            margin: 0;
+            padding: 45px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            font-size: 1.8em;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+        #history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        #history-list li {
+            font-size: 1.2em;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        #history-list li.saved {
+            background-color: #f7faff;
+            border-color: #a0c4e8;
+            color: #0056b3;
+            font-weight: bold;
+        }
+
+        #history-list li.saved:hover {
+            background-color: #e9f5ff;
+        }
+        
+        #history-list li.empty {
+            background-color: #f8f9fa;
+            color: #adb5bd;
+        }
+        
+        #history-list li.empty:hover {
+             background-color: #e9ecef;
+        }
+
+        /* 수정 대상 선택 시 하이라이트 */
+        #history-list li.selected {
+            background-color: #d4edda; 
+            border-color: #28a745;
+            color: #155724;
+            font-weight: bold;
+        }
+
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 45px;
+        }
+
+        .seat {
+            width: 130px;
+            height: 72px;
+            border: 3px solid #a0c4e8;
+            border-radius: 14px;
+            background-color: #f7faff;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        .seat-row {
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        .top-row {
+            justify-content: space-between; 
+            margin-bottom: 50px;
+        }
+
+        .bottom-row {
+            justify-content: space-between;
+        }
+
+        .seat-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .square-block {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .seat-sub-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 45px;
+        }
+
+        #shuffle-button {
+            flex: 1;
+            padding: 22px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #shuffle-button:hover {
+            background-color: #0056b3;
+        }
+
+        #register-button {
+            flex: 1;
+            padding: 22px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #register-button:hover {
+            background-color: #218838;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <div class="container">
+            <h1>랜덤 자리 배치</h1>
+
+            <div class="seat-row top-row">
+                <div class="seat-group">
+                    <div class="seat" id="seat-1">좌석1</div>
+                    <div class="seat" id="seat-2">좌석2</div>
+                </div>
+                <div class="seat-group">
+                    <div class="seat" id="seat-3">좌석3</div>
+                    <div class="seat" id="seat-4">좌석4</div>
+                    <div class="seat" id="seat-5">좌석5</div>
+                </div>
+            </div>
+
+            <div class="seat-row bottom-row">
+                <div class="seat-group square-block">
+                    <div class="seat-sub-row">
+                        <div class="seat" id="seat-6">좌석6</div>
+                        <div class="seat" id="seat-7">좌석7</div>
+                    </div>
+                    <div class="seat-sub-row">
+                        <div class="seat" id="seat-8">좌석8</div>
+                        <div class="seat" id="seat-9">좌석9</div>
+                    </div>
+                </div>
+                <div class="seat-group square-block">
+                    <div class="seat-sub-row">
+                        <div class="seat" id="seat-10">좌석10</div>
+                        <div class="seat" id="seat-11">좌석11</div>
+                    </div>
+                    <div class="seat-sub-row">
+                        <div class="seat" id="seat-12">좌석12</div>
+                        <div class="seat" id="seat-13">좌석13</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="shuffle-button">자리 섞기</button>
+                <button id="register-button">등록</button> </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>저장된 내역</h2>
+            <ol id="history-list">
+                </ol>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. 13명의 이름 목록
+        const names = [
+            "신지원", "남기정", "변영찬", "김윤군", "이지안", 
+            "김준성", "김주연", "공정배", "이유랑", "노정운", 
+            "장수빈", "박호정", "조진희"
+        ];
+
+        // 2. HTML 요소 가져오기
+        const shuffleButton = document.getElementById('shuffle-button');
+        const registerButton = document.getElementById('register-button');
+        const historyList = document.getElementById('history-list');
+        const allSeats = document.querySelectorAll('.seat');
+
+        // 3. 핵심 데이터 변수
+        let seatHistory = []; 
+        let currentPreviewSeats = [];
+        let currentlyEditingIndex = -1;
+
+        // 4. 페이지 로드 시 실행되는 함수
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistoryFromLocalStorage();
+            renderHistoryList();
+        });
+
+        // 5. '자리 섞기' 버튼 클릭 이벤트 (미리보기 기능)
+        shuffleButton.addEventListener('click', () => {
+            const shuffledNames = shuffleArray([...names]);
+            currentPreviewSeats = shuffledNames; 
+            displaySeats(currentPreviewSeats); 
+        });
+
+        // 6. '등록' 버튼 클릭 이벤트 (선택한 주차에 저장/덮어쓰기)
+        registerButton.addEventListener('click', () => {
+            // 6-1. 미리보기가 있는지 확인
+            if (currentPreviewSeats.length === 0) {
+                alert('먼저 [자리 섞기] 버튼을 눌러주세요.');
+                return;
+            }
+
+            // 6-2. 주차를 선택했는지 확인
+            if (currentlyEditingIndex === -1) {
+                alert('먼저 등록(수정)할 주차를 오른쪽 목록에서 선택하세요.');
+                return;
+            }
+
+            // 6-3. 선택한 인덱스에 데이터 덮어쓰기 (새 등록/수정 공통)
+            const weekNum = currentlyEditingIndex + 1;
+            seatHistory[currentlyEditingIndex] = currentPreviewSeats;
+            
+            saveHistoryToLocalStorage();
+            alert(`${weekNum}주차 자리가 등록/수정되었습니다.`);
+
+            // 6-4. [수정] 등록/수정 완료 후 상태 초기화
+            // --- ✨ 여기가 수정된 부분입니다 ---
+            
+            // 1. 방금 저장한 좌석 정보를 임시 변수에 백업
+            const savedSeatsToShow = [...currentPreviewSeats]; 
+
+            // 2. '미리보기'는 초기화 (중복 등록 방지)
+            currentPreviewSeats = [];
+            // 3. '선택' 모드 초기화
+            currentlyEditingIndex = -1; 
+            
+            // 4. 목록 새로고침 (하이라이트 제거, 'saved'로 변경 등)
+            renderHistoryList(); 
+            // 5. [수정] 빈 좌석 대신, 방금 등록한 좌석(백업해둔 변수)을 보여줌
+            displaySeats(savedSeatsToShow); 
+
+            // [삭제] displaySeats([]); // 좌석판 비우기
+            // ----------------------------------
+        });
+
+        // 7. 로컬스토리지에서 저장된 기록 불러오기
+        function loadHistoryFromLocalStorage() {
+            const savedData = localStorage.getItem('seatHistoryData');
+            if (savedData) {
+                seatHistory = JSON.parse(savedData);
+            } else {
+                seatHistory = [];
+            }
+        }
+
+        // 8. 현재 seatHistory를 로컬스토리지에 저장하기
+        function saveHistoryToLocalStorage() {
+            localStorage.setItem('seatHistoryData', JSON.stringify(seatHistory));
+        }
+
+        // 9. 오른쪽 18주차 목록을 화면에 그리기
+        function renderHistoryList() {
+            historyList.innerHTML = ''; // 목록 비우기
+
+            for (let i = 0; i < 18; i++) {
+                const li = document.createElement('li');
+
+                if (seatHistory[i]) {
+                    // 9-1. 저장된 데이터가 있는 주차
+                    li.textContent = `${i + 1}주차`;
+                    li.classList.add('saved');
+                } else {
+                    // 9-2. 비어있는 주차
+                    li.textContent = `${i + 1}주차 (비어있음)`;
+                    li.classList.add('empty');
+                }
+                
+                // 공통 클릭 이벤트
+                li.addEventListener('click', () => {
+                    selectWeek(i); // i : 0 ~ 17
+                });
+
+                // 현재 선택된 인덱스면 'selected' 클래스 추가
+                if (i === currentlyEditingIndex) {
+                    li.classList.add('selected');
+                }
+
+                historyList.appendChild(li); 
+            }
+        }
+
+        // 10. 주차 클릭 시 실행되는 함수
+        function selectWeek(weekIndex) {
+            // 1. 현재 선택한 인덱스를 변수에 저장
+            currentlyEditingIndex = weekIndex;
+            
+            // 2. 목록을 다시 그려서 하이라이트(selected) 표시
+            renderHistoryList();
+            
+            // 3. 해당 주차의 데이터를 메인 좌석판에 표시
+            if (seatHistory[weekIndex]) {
+                displaySeats(seatHistory[weekIndex]);
+            } else {
+                displaySeats([]);
+            }
+            
+            // 4. '등록'을 누르기 전 '자리 섞기'를 새로 하도록 미리보기 초기화
+            currentPreviewSeats = []; 
+        }
+
+        // 12. 이름 배열(namesArray)을 받아 좌석에 표시하는 함수
+        function displaySeats(namesArray) {
+            allSeats.forEach((seat, index) => {
+                seat.textContent = namesArray[index] || ''; 
+            });
+        }
+
+        // 13. 배열 섞기 함수
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
